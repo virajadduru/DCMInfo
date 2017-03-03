@@ -40,21 +40,23 @@ def get_dcm_params(dcm_files,dcm_field_names,data_dir=''):
     
     """
     num_files = len(dcm_files)
-
-    dcm_field_vals=dict([[name,[]] for name in dcm_field_names])    
-    num_fields = len(dcm_field_names)
-    
-    for i in range(num_files):
-        # read each file
-        dcm_file = dcmtool.read_file(os.path.join(data_dir,dcm_files[i]),force = True)
-        
-        # append series description value of each file to series_desc
-        for k in range(num_fields):
-            dcm_field_vals.get(dcm_field_names[k]).append(dcm_file.get(dcm_field_names[k]))
-        
-        
-    dcm_field_vals.update({'FileNames':dcm_files})     
-        
+    dcm_field_vals=dict([[name,[]] for name in dcm_field_names])
+    if type(dcm_files) == list:        
+        for i in range(num_files):
+            # read each file
+            dcm_file = dcmtool.read_file(os.path.join(data_dir,dcm_files[i]),force = True)
+            
+            # append series description value of each file to series_desc
+            for field in dcm_field_names:
+                dcm_field_vals.get(field).append(dcm_file.get(field))
+            
+    else:
+        assert type(dcm_files) == str
+        dcm_file = dcmtool.read_file(os.path.join(data_dir,dcm_files),force = True)
+        for field in dcm_field_names:
+            dcm_field_vals.update({field:dcm_file.get(field)})
+                
+    dcm_field_vals.update({'FileNames':dcm_files})    
     return dcm_field_vals
     
     
@@ -64,7 +66,7 @@ def group_image_indices(field_vals_list):
     Identifies the images in dicoms and gives out the list of indices belonging
     to each image
     
-    Iteratively groups the indices starting with the primary and subgroups the 
+    Iteratively groups the indices starting with the primary field and subgroups the 
     primary groups using secondary field and viceversa
     
     Inputs: 
@@ -119,7 +121,11 @@ def group_field_vals(field_vals,grouped_indices):
     return grouped_field_vals
    
    
-
+def write_tocsv(data_list,filename):
+    with open(filename,'wt') as csvfile:
+        for i in data_list:
+            str_list = [str(k) for k in i]
+            csvfile.write(','.join(str_list)+'\n')
 
 
 
@@ -220,25 +226,32 @@ def getNifti(dicom_dir,convert=False,sub_nifti_path=None,log_file=None,compress 
     return nifti_files
 
     
-def dicomFolderInfo(dataDir,dcmFieldNames,groupFieldOrder = None):
+def dicomFolderInfo(dataDir,dcmFieldNames,groupFieldOrder = None, single_file = False):
     
     # get dcm file list
     files_list = os.listdir(dataDir)
     dcm_files = [k for k in files_list if k.endswith('.dcm')]
     
     # get dcm_field values for all files
-    dcm_field_vals = get_dcm_params(dcm_files,dcmFieldNames,dataDir)
-    
-    # grouping data
-    if groupFieldOrder != None:          
-        data_for_grouping = [dcm_field_vals.get(groupFieldOrder[k]) for k in range(len(groupFieldOrder))] # pack grouping fields for grouping
-        series_indices = group_image_indices(data_for_grouping) # get indices in groups
-        grouped_field_vals=dict([[name,group_field_vals(dcm_field_vals.get(name),series_indices)] for name in dcm_field_vals.keys()]) # group all the field values
-
-    else:
-        grouped_field_vals = dcm_field_vals
+    if single_file == False :
+        dcm_field_vals = get_dcm_params(dcm_files,dcmFieldNames,dataDir)
         
-    return grouped_field_vals    
+        # grouping data
+        if groupFieldOrder != None:          
+            data_for_grouping = [dcm_field_vals.get(groupFieldOrder[k]) for k in range(len(groupFieldOrder))] # pack grouping fields for grouping
+            series_indices = group_image_indices(data_for_grouping) # get indices in groups
+            grouped_field_vals=dict([[name,group_field_vals(dcm_field_vals.get(name),series_indices)] for name in dcm_field_vals.keys()]) # group all the field values
+    
+        else:
+            grouped_field_vals = dcm_field_vals
+            
+        
+        return grouped_field_vals    
+        
+    else:
+        dcm_field_vals = get_dcm_params(dcm_files[0],dcmFieldNames,dataDir)
+        
+        return dcm_field_vals
     
 def listDicomFolders(datadir, verbose = False):
     dcm_folders = []
