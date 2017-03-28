@@ -253,7 +253,7 @@ def dicomFolderInfo(dataDir,dcmFieldNames,groupFieldOrder = None, single_file = 
         
         return dcm_field_vals
     
-def listDicomFolders(datadir, verbose = False):
+def listDicomFolders(datadir, verbose = False,checkdcmfiles = False):
     dcm_folders = []
     dir_gen = os.walk(datadir)
     count = 0
@@ -466,28 +466,4 @@ def myfunc(sub_name,**extra):
 
 
 
-        
-   # return dcminfo
-
-    
-if __name__=='__main__':  # current
-    
-    sub_list = r'G:\DATA_NIFTI\MR-Head-DeID\subject_list_3t.txt'   
-  
-    with open(sub_list) as sub_file:
-        lines = sub_file.readlines()
-    lines = [k.rstrip() for k in lines]
-    count = 0
-    start_from = 48
-    
-    count = 0
-
-    for i in range(start_from-1,len(lines)):
-        print '\n'
-        print str(i+1)+'/'+str(len(lines))
-        y= myfunc(lines[i])
-        count +=1
-#
-#        if count == 2:
-#            break
 
