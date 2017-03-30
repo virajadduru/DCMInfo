@@ -126,6 +126,7 @@ if __name__=='__main__':
     
     import nibabel.nifti1 as niftitool
     import numpy as np
+    data_dir = ''
 
     with open(os.path.join(data_dir,'subjectlist.txt')) as f:
         subject_list = f.read().splitlines()
@@ -146,7 +147,7 @@ if __name__=='__main__':
         print i
         mode_image_file = os.path.join(data_dir,i,
                                        i+'_T2_masked_roi_restore_std.nii.gz')
-        seg_mask_file = os.path.join(data_dir2,i,
+        seg_mask_file = os.path.join(data_dir,i,
                                      'segmented',
                                      i+'_T1_brain_roi_pveseg.nii.gz')
 
